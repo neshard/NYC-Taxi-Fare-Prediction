@@ -1,10 +1,23 @@
-# New York City Taxi Fare Prediction
-
-A collaborative project to predict taxi fare prices in New York City using machine learning.
+# 🚕 Predicting NYC Taxi Fares: Can we accurately estimate trip costs?
 
 ## Project Overview
 
-This project analyzes NYC taxi data and builds predictive models to estimate fare amounts based on trip characteristics.
+This project predicts the exact fare of a taxi ride in New York City using historical trip characteristics, geographic coordinates, and time-based features.
+
+- **Target variable:** `fare_amount` (Continuous variable in USD).
+- **Goal:** Provide accurate upfront fare estimations for both passengers and drivers based on straight-line distance and time of day.
+
+## Model Performance (Random Forest with Hyperparameter Tuning)
+
+| Metric | Score |
+| :--- | :--- |
+| **Test R-Squared (R²)** | **76.5%** |
+| **Test RMSE** | **$4.84** |
+| **Test MAE** | **$2.31** |
+| **Optimal numTrees** | **150** |
+| **Optimal maxDepth** | **15** |
+
+The model was evaluated on a **20% hold-out test set** (unseen data) with a fixed seed to prevent data leakage. The evaluation metric used for optimization is Root Mean Squared Error (RMSE), representing the average dollar amount the prediction deviates from the actual fare.
 
 ## Getting Started
 

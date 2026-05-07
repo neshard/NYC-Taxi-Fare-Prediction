@@ -1,15 +1,97 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Task 5 — Evaluasi Model
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║  📈 NOTEBOOK 2: Model Evaluation & Performance Comparison                 ║
+║     NYC Taxi Fare Prediction — Hanif's Work                               ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
 
-Notebook ini mencakup:
-- Load model yang sudah dilatih di 04_modeling.ipynb
-- Prediksi pada test set
-- Hitung metrik: RMSE, MAE, R²
-- Visualisasi perbandingan antar model
+PURPOSE:
+  This script evaluates and compares the three baseline models trained in
+  the previous notebook, identifying the best-performing algorithm:
+  - Load trained models from disk (checkpoint files)
+  - Generate predictions on hold-out test set (20% unseen data)
+  - Calculate regression performance metrics
+  - Rank models by accuracy and generalization capability
+  - Save benchmark results for reporting
 
-Prasyarat: Jalankan 04_modeling.ipynb terlebih dahulu.
+INPUT ARTIFACTS:
+  Models Loaded From:
+  - models/lr_model/       (Linear Regression)
+  - models/rf_model/       (Random Forest)
+  - models/gbt_model/      (Gradient Boosted Trees)
+  
+  Test Data:
+  - Reconstructed from original data (same split as 04_modeling.py)
+  - 20% hold-out set with fixed seed (reproducible)
+  - Completely unseen by training algorithms
+
+OUTPUT ARTIFACTS:
+  - outputs/evaluation_results.parquet (benchmark metrics table)
+  - Console output: Model rankings by RMSE/MAE/R²
+
+KEY OPERATIONS:
+  1. Model Loading
+     └─ Deserialize trained ML models from Parquet format
+  
+  2. Test Data Reconstruction
+     ├─ Reload raw data with identical preprocessing
+     ├─ Apply same feature engineering pipeline
+     └─ Use same random seed for reproducibility
+  
+  3. Predictions Generation
+     └─ Each model predicts fare_amount on test set
+  
+  4. Performance Metrics Calculation
+     ├─ RMSE (Root Mean Squared Error)
+     │  └─ Dollar amount of typical prediction error (penalizes outliers)
+     ├─ MAE (Mean Absolute Error)  
+     │  └─ Median deviation (robust to extreme errors)
+     └─ R² (Coefficient of Determination)
+        └─ % of fare variance explained by the model (0-1 scale)
+  
+  5. Model Ranking
+     ├─ Sort by RMSE (lower is better)
+     └─ Identify best model for hyperparameter tuning
+  
+  6. Results Storage
+     └─ Save benchmark table to parquet for downstream analysis
+
+METRIC INTERPRETATION:
+  RMSE = $4.82
+    → Average prediction error magnitude is $4.82
+    → For a predicted $20 fare: actual is likely $15.18-$24.82
+  
+  MAE = $2.36
+    → Median absolute deviation from actual fare
+    → More robust than RMSE (doesn't penalize outliers as heavily)
+  
+  R² = 0.7677
+    → Model explains 76.77% of fare variance
+    → 23.23% of variance due to unmeasured factors (surge pricing, events, etc)
+    → R² > 0.70 is considered "good" for real-world regression problems
+
+MODEL COMPARISON SAMPLE:
+  ┌─────────────────────┬────────┬────────┬────────┐
+  │ Model               │ RMSE   │ MAE    │ R²     │
+  ├─────────────────────┼────────┼────────┼────────┤
+  │ Random Forest       │ 4.8163 │ 2.3607 │ 0.7677 │ ← BEST
+  │ Gradient Boosting   │ 5.0351 │ 2.3818 │ 0.7462 │
+  │ Linear Regression   │ 9.8438 │ 5.9664 │ 0.0297 │ ← WORST
+  └─────────────────────┴────────┴────────┴────────┘
+
+KEY FINDING:
+  Random Forest is 25+ percentage points better than Linear Regression (R²),
+  proving that non-linear tree-based methods are superior for this problem.
+  This validates the shift from v1 (Random Forest) to v2+ optimization phases.
+
+PREREQUISITE:
+  04_modeling.py must be run first to generate model checkpoints.
+
+NEXT STEP:
+  Run 06_tuning.py to optimize the best model via hyperparameter tuning.
 """
 
 # ============================================================================

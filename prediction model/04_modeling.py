@@ -1,17 +1,82 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Task 4 — Pemodelan dengan PySpark MLlib
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║  📊 NOTEBOOK 1: Data Modeling & Feature Engineering                       ║
+║     NYC Taxi Fare Prediction — Hanif's Work                               ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
 
-Notebook ini mencakup:
-- Inisialisasi SparkSession
-- Load data (dari Nesha jika sudah siap, fallback ke train.csv)
-- Feature Engineering
-- Persiapan fitur dengan VectorAssembler
-- Training 3 model: Linear Regression, Random Forest, GBT
-- Simpan model untuk dievaluasi di notebook berikutnya
+PURPOSE:
+  This script handles the entire data modeling pipeline:
+  - Load raw NYC taxi data with multi-borough coverage
+  - Perform feature engineering (spatial + temporal features)
+  - Prepare feature vectors for ML algorithms
+  - Train 3 baseline regression models:
+    * Linear Regression (baseline statistical model)
+    * Random Forest Regressor (ensemble tree-based)
+    * Gradient Boosted Trees (sequential ensemble)
+  - Save trained models for evaluation in next notebook
 
-Catatan: Jika Nesha belum selesai preprocessing, notebook ini akan otomatis load dari train.csv dengan preprocessing dasar.
+INPUT DATA:
+  Dataset: NYC Taxi Fare Prediction (2010-2015)
+  Location: data/raw/nyc_taxi_data.csv
+  Columns: key, fare_amount, pickup_datetime, pickup_longitude, 
+           pickup_latitude, dropoff_longitude, dropoff_latitude, passenger_count
+  Total Records: ~1.1M taxi rides
+
+OUTPUT ARTIFACTS:
+  - models/lr_model/       (Linear Regression checkpoint)
+  - models/rf_model/       (Random Forest checkpoint)
+  - models/gbt_model/      (Gradient Boosted Trees checkpoint)
+
+KEY OPERATIONS:
+  1. SparkSession Initialization
+     └─ Distributed computing framework for PySpark MLlib
+  
+  2. Data Loading & Validation
+     └─ Load from CSV, infer schema, check row/column counts
+  
+  3. Feature Engineering
+     ├─ Haversine Distance Calculation
+     │  └─ Great-circle distance between pickup/dropoff coordinates
+     ├─ Temporal Feature Extraction
+     │  ├─ Hour (0-23): Rush hour patterns
+     │  ├─ Day of Week (1-7): Weekday vs weekend effects
+     │  ├─ Month (1-12): Seasonal variations
+     │  └─ Year (2010-2015): Inflation/market trends
+     └─ Location Features
+        ├─ pickup_longitude, pickup_latitude (zone effects)
+        ├─ dropoff_longitude, dropoff_latitude (destination effects)
+        └─ passenger_count (occupancy signals)
+  
+  4. Feature Assembly & Data Preparation
+     └─ VectorAssembler: Convert 10 features → MLlib Vector format
+  
+  5. Train/Test Split
+     ├─ Training: 80% of data (model learning)
+     └─ Testing: 20% of data (performance evaluation)
+  
+  6. Model Training
+     ├─ Linear Regression: Baseline statistical model
+     ├─ Random Forest: 50-100 trees, max depth 10
+     └─ Gradient Boosted Trees: Sequential boosting
+
+NOTE ON SAMPLING:
+  For local execution on Windows, SAMPLE_SIZE = 10,000 rows is used to prevent
+  JVM timeouts and Python worker crashes. Adjust SAMPLE_SIZE parameter for:
+  - 10K: Fast testing/debugging (30 sec per model)
+  - 25K: Balanced accuracy/speed (5+ minutes per model)
+  - None: Full data (requires cluster or cloud deployment)
+
+DEPENDENCIES:
+  - PySpark 2.4+ (MLlib for regression algorithms)
+  - Python 3.7+
+  - Memory: 2GB+ (recommended 4GB)
+
+NEXT STEP:
+  Run 05_evaluation.py to compare model performance metrics.
 """
 
 # ============================================================================
@@ -279,8 +344,6 @@ print("  ☁️  Training: Requires cluster environment")
 
 print("="*70)
 
-# Save test data untuk evaluation later (skip karena Hadoop Windows issue)
-# Data sudah di-split, hanya models yang penting untuk disimpan
-print(f"\n✓ Test data siap untuk evaluation (tidak perlu disimpan)")
+
 
 spark.stop()
